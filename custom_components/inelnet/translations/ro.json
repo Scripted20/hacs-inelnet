@@ -3,48 +3,94 @@
     "step": {
       "user": {
         "title": "Conectare la InelNET",
-        "description": "Introdu adresa IP a controller-ului InelNET. Implicit este {default_ip}",
+        "description": "Introdu adresa IP a controller-ului InelNET",
         "data": {
           "host": "Adresa IP"
         }
       },
       "devices": {
-        "title": "Numar de dispozitive",
-        "description": "Cate jaluzele vrei sa configurezi?",
+        "title": "Numar de jaluzele",
+        "description": "Cate jaluzele vrei sa configurezi initial? Poti adauga mai multe ulterior.",
         "data": {
-          "num_devices": "Numar dispozitive"
+          "num_devices": "Numar de jaluzele"
         }
       },
       "device_config": {
-        "title": "Configureaza dispozitivul {device_num} din {total_devices}",
+        "title": "Configureaza jaluzeaua {device_num} din {total_devices}",
         "description": "Seteaza parametrii pentru aceasta jaluzeaua",
         "data": {
-          "channel": "Numar canal",
-          "name": "Nume dispozitiv",
-          "travel_time": "Timp cursa (secunde)",
+          "channel": "Numar canal (1-32)",
+          "name": "Nume",
+          "travel_time": "Timp cursa (deschis/inchis complet)",
           "facade": "Orientare fatada",
           "floor": "Etaj",
-          "shaded": "Umbrit (sub balcon)"
+          "shaded": "Umbrita (sub balcon)"
         }
       }
     },
     "error": {
-      "cannot_connect": "Nu ma pot conecta la controller-ul InelNET. Verifica adresa IP.",
+      "cannot_connect": "Nu ma pot conecta la InelNET. Verifica adresa IP si asigura-te ca e pornit.",
       "unknown": "Eroare necunoscuta"
     },
     "abort": {
-      "already_configured": "Dispozitivul este deja configurat"
+      "already_configured": "Acest controller InelNET e deja configurat"
     }
   },
   "options": {
     "step": {
       "init": {
         "title": "Optiuni InelNET",
+        "description": "Configurate: {device_count} jaluzele",
         "data": {
-          "retry_count": "Numar de reincercari",
-          "retry_delay": "Pauza intre reincercari (secunde)"
+          "action": "Ce doresti sa faci?"
+        }
+      },
+      "select_device": {
+        "title": "Selecteaza jaluzeaua de editat",
+        "data": {
+          "device": "Selecteaza jaluzeaua"
+        }
+      },
+      "edit_device": {
+        "title": "Editeaza: {device_name}",
+        "data": {
+          "channel": "Numar canal",
+          "name": "Nume",
+          "travel_time": "Timp cursa",
+          "facade": "Orientare fatada",
+          "floor": "Etaj",
+          "shaded": "Umbrita"
+        }
+      },
+      "add_device": {
+        "title": "Adauga jaluzeaua noua",
+        "data": {
+          "channel": "Numar canal",
+          "name": "Nume",
+          "travel_time": "Timp cursa",
+          "facade": "Orientare fatada",
+          "floor": "Etaj",
+          "shaded": "Umbrita"
+        }
+      },
+      "remove_device": {
+        "title": "Sterge jaluzeaua",
+        "description": "Selecteaza jaluzeaua de sters. Actiunea nu poate fi anulata.",
+        "data": {
+          "device": "Selecteaza jaluzeaua de sters"
+        }
+      },
+      "settings": {
+        "title": "Setari conexiune",
+        "data": {
+          "host": "Adresa IP",
+          "retry_count": "Numar reincercari",
+          "retry_delay": "Pauza intre reincercari"
         }
       }
+    },
+    "abort": {
+      "no_devices": "Niciun dispozitiv configurat"
     }
   }
 }

@@ -3,48 +3,94 @@
     "step": {
       "user": {
         "title": "Connect to InelNET",
-        "description": "Enter the IP address of your InelNET controller. Default is {default_ip}",
+        "description": "Enter the IP address of your InelNET controller",
         "data": {
           "host": "IP Address"
         }
       },
       "devices": {
-        "title": "Number of Devices",
-        "description": "How many blinds/covers do you want to configure?",
+        "title": "Number of Blinds",
+        "description": "How many blinds do you want to configure initially? You can add more later.",
         "data": {
-          "num_devices": "Number of devices"
+          "num_devices": "Number of blinds"
         }
       },
       "device_config": {
-        "title": "Configure Device {device_num} of {total_devices}",
-        "description": "Configure the settings for this blind/cover",
+        "title": "Configure Blind {device_num} of {total_devices}",
+        "description": "Set up this blind's parameters",
         "data": {
-          "channel": "Channel number",
-          "name": "Device name",
-          "travel_time": "Travel time (seconds)",
+          "channel": "Channel number (1-32)",
+          "name": "Name",
+          "travel_time": "Travel time (full open/close)",
           "facade": "Facade orientation",
           "floor": "Floor",
-          "shaded": "Shaded (under balcony)"
+          "shaded": "Shaded (under balcony/overhang)"
         }
       }
     },
     "error": {
-      "cannot_connect": "Cannot connect to InelNET controller. Check the IP address.",
+      "cannot_connect": "Cannot connect to InelNET controller. Check the IP address and make sure it's powered on.",
       "unknown": "Unknown error occurred"
     },
     "abort": {
-      "already_configured": "Device is already configured"
+      "already_configured": "This InelNET controller is already configured"
     }
   },
   "options": {
     "step": {
       "init": {
         "title": "InelNET Options",
+        "description": "Currently configured: {device_count} blinds",
         "data": {
-          "retry_count": "Number of command retries",
-          "retry_delay": "Delay between retries (seconds)"
+          "action": "What would you like to do?"
+        }
+      },
+      "select_device": {
+        "title": "Select Blind to Edit",
+        "data": {
+          "device": "Select blind"
+        }
+      },
+      "edit_device": {
+        "title": "Edit: {device_name}",
+        "data": {
+          "channel": "Channel number",
+          "name": "Name",
+          "travel_time": "Travel time",
+          "facade": "Facade orientation",
+          "floor": "Floor",
+          "shaded": "Shaded"
+        }
+      },
+      "add_device": {
+        "title": "Add New Blind",
+        "data": {
+          "channel": "Channel number",
+          "name": "Name",
+          "travel_time": "Travel time",
+          "facade": "Facade orientation",
+          "floor": "Floor",
+          "shaded": "Shaded"
+        }
+      },
+      "remove_device": {
+        "title": "Remove Blind",
+        "description": "Select the blind to remove. This cannot be undone.",
+        "data": {
+          "device": "Select blind to remove"
+        }
+      },
+      "settings": {
+        "title": "Connection Settings",
+        "data": {
+          "host": "IP Address",
+          "retry_count": "Command retries",
+          "retry_delay": "Delay between retries"
         }
       }
+    },
+    "abort": {
+      "no_devices": "No devices configured"
     }
   },
   "services": {
