@@ -1,0 +1,107 @@
+blueprint:
+  name: InelNET Away Mode
+  description: >
+    Simulate presence when you're away by randomly moving blinds.
+    Creates the appearance that someone is home.
+    Only activates during daylight hours when away mode is on.
+  domain: automation
+  author: InelNET Integration
+  input:
+    away_entity:
+      name: Away Mode Toggle
+      description: Input boolean or binary sensor that indicates away mode is active
+      selector:
+        entity:
+          domain:
+            - input_boolean
+            - binary_sensor
+    interval_hours:
+      name: Interval (Hours)
+      description: Move a random blind every X hours
+      default: 2
+      selector:
+        number:
+          min: 1
+          max: 6
+          step: 1
+          unit_of_measurement: "hours"
+    min_position:
+      name: Minimum Position
+      description: Minimum random position (more closed)
+      default: 20
+      selector:
+        number:
+          min: 0
+          max: 50
+          step: 10
+          unit_of_measurement: "%"
+    max_position:
+      name: Maximum Position
+      description: Maximum random position (more open)
+      default: 80
+      selector:
+        number:
+          min: 50
+          max: 100
+          step: 10
+          unit_of_measurement: "%"
+    target_covers:
+      name: Available Blinds
+      description: Pool of blinds to randomly select from
+      selector:
+        target:
+          entity:
+            domain: cover
+            integration: inelnet
+
+mode: single
+max_exceeded: silent
+
+trigger:
+  - platform: time_pattern
+    hours: !input interval_hours
+
+condition:
+  - condition: state
+    entity_id: !input away_entity
+    state: "on"
+  - condition: sun
+    after: sunrise
+    after_offset: "01:00:00"
+  - condition: sun
+    before: sunset
+    before_offset: "-01:00:00"
+
+action:
+  - variables:
+      cover_entities: >
+        {{ expand(target_covers.entity_id) | map(attribute='entity_id') | list }}
+      random_cover: >
+        {{ cover_entities | random }}
+      random_position: >
+        {{ range(min_position, max_position + 1, 10) | list | random }}
+  - service: cover.set_cover_position
+    target:
+      entity_id: "{{ random_cover }}"
+    data:
+      position: "{{ random_position }}"
+  - delay:
+      minutes: "{{ range(5, 20) | random }}"
+  - condition: state
+    entity_id: !input away_entity
+    state: "on"
+  - variables:
+      another_cover: >
+        {{ cover_entities | reject('eq', random_cover) | list | random if cover_entities | length > 1 else random_cover }}
+      another_position: >
+        {{ range(min_position, max_position + 1, 10) | list | random }}
+  - service: cover.set_cover_position
+    target:
+      entity_id: "{{ another_cover }}"
+    data:
+      position: "{{ another_position }}"
+
+variables:
+  min_position: !input min_position
+  max_position: !input max_position
+  target_covers: !input target_covers

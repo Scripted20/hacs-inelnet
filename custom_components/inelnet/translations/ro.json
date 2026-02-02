@@ -87,6 +87,19 @@
           "retry_count": "Numar reincercari",
           "retry_delay": "Pauza intre reincercari"
         }
+      },
+      "automation_settings": {
+        "title": "Setari automatizare",
+        "description": "Configureaza functiile de automatizare solara si meteo",
+        "data": {
+          "enable_sensors": "Activeaza senzori virtuali",
+          "enable_solar_automation": "Activeaza automatizare solara",
+          "solar_threshold": "Prag expunere solara",
+          "enable_weather_protection": "Activeaza protectie meteo",
+          "weather_entity": "Entitate meteo",
+          "max_temperature": "Temperatura maxima",
+          "max_wind_speed": "Viteza maxima vant"
+        }
       }
     },
     "abort": {

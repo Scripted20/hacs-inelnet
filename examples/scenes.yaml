@@ -1,0 +1,200 @@
+# InelNET Example Scenes
+# Copy these scenes to your Home Assistant configuration
+# Adjust entity_ids to match your actual blind names
+
+# ==============================================================================
+# BASIC SCENES
+# ==============================================================================
+
+scene:
+  # Morning - Open all blinds
+  - id: inelnet_morning
+    name: "InelNET - Morning"
+    icon: mdi:weather-sunny
+    entities:
+      # Replace with your actual cover entity IDs
+      cover.inelnet_living_room:
+        state: open
+      cover.inelnet_bedroom:
+        state: open
+      cover.inelnet_kitchen:
+        state: open
+      cover.inelnet_office:
+        state: open
+
+  # Evening - Close all blinds for privacy
+  - id: inelnet_evening
+    name: "InelNET - Evening Privacy"
+    icon: mdi:weather-night
+    entities:
+      cover.inelnet_living_room:
+        state: closed
+      cover.inelnet_bedroom:
+        state: closed
+      cover.inelnet_kitchen:
+        state: closed
+      cover.inelnet_office:
+        state: closed
+
+  # Movie time - Full darkness
+  - id: inelnet_movie
+    name: "InelNET - Movie Time"
+    icon: mdi:filmstrip
+    entities:
+      cover.inelnet_living_room:
+        state: closed
+        current_cover_position: 0
+      cover.inelnet_bedroom:
+        state: closed
+        current_cover_position: 0
+
+  # Ventilation - Partially open for airflow
+  - id: inelnet_ventilation
+    name: "InelNET - Ventilation"
+    icon: mdi:air-filter
+    entities:
+      cover.inelnet_living_room:
+        state: open
+        current_cover_position: 70
+      cover.inelnet_bedroom:
+        state: open
+        current_cover_position: 70
+      cover.inelnet_kitchen:
+        state: open
+        current_cover_position: 80
+
+# ==============================================================================
+# SEASONAL SCENES
+# ==============================================================================
+
+  # Summer Day - South closed, North open
+  - id: inelnet_summer_day
+    name: "InelNET - Summer Solar Protection"
+    icon: mdi:white-balance-sunny
+    entities:
+      # South facing - closed for heat protection
+      cover.inelnet_south_1:
+        state: closed
+        current_cover_position: 20
+      cover.inelnet_south_2:
+        state: closed
+        current_cover_position: 20
+      # North facing - can stay open
+      cover.inelnet_north_1:
+        state: open
+        current_cover_position: 100
+      cover.inelnet_north_2:
+        state: open
+        current_cover_position: 100
+
+  # Winter Day - All open to maximize natural heating
+  - id: inelnet_winter_day
+    name: "InelNET - Winter Sun"
+    icon: mdi:snowflake-melt
+    entities:
+      cover.inelnet_south_1:
+        state: open
+      cover.inelnet_south_2:
+        state: open
+      cover.inelnet_east_1:
+        state: open
+      cover.inelnet_west_1:
+        state: open
+
+  # Winter Night - All closed for insulation
+  - id: inelnet_winter_night
+    name: "InelNET - Winter Insulation"
+    icon: mdi:snowflake
+    entities:
+      cover.inelnet_living_room:
+        state: closed
+        current_cover_position: 0
+      cover.inelnet_bedroom:
+        state: closed
+        current_cover_position: 0
+      cover.inelnet_kitchen:
+        state: closed
+        current_cover_position: 0
+
+# ==============================================================================
+# FLOOR-BASED SCENES
+# ==============================================================================
+
+  # Ground floor open, upper floor closed
+  - id: inelnet_ground_only
+    name: "InelNET - Ground Floor Open"
+    icon: mdi:home-floor-0
+    entities:
+      # Ground floor (parter) - open
+      cover.inelnet_living_room:
+        state: open
+      cover.inelnet_kitchen:
+        state: open
+      # Upper floor (etaj) - closed
+      cover.inelnet_bedroom:
+        state: closed
+      cover.inelnet_office:
+        state: closed
+
+  # Upper floor open, ground floor closed
+  - id: inelnet_upper_only
+    name: "InelNET - Upper Floor Open"
+    icon: mdi:home-floor-1
+    entities:
+      # Ground floor - closed
+      cover.inelnet_living_room:
+        state: closed
+      cover.inelnet_kitchen:
+        state: closed
+      # Upper floor - open
+      cover.inelnet_bedroom:
+        state: open
+      cover.inelnet_office:
+        state: open
+
+# ==============================================================================
+# WORK FROM HOME SCENES
+# ==============================================================================
+
+  # Work mode - Office optimal, others reduced
+  - id: inelnet_work_mode
+    name: "InelNET - Work Mode"
+    icon: mdi:briefcase
+    entities:
+      cover.inelnet_office:
+        state: open
+        current_cover_position: 60  # Reduce glare on screen
+      cover.inelnet_living_room:
+        state: closed
+        current_cover_position: 30
+
+  # Meeting mode - Background privacy
+  - id: inelnet_meeting
+    name: "InelNET - Video Meeting"
+    icon: mdi:video
+    entities:
+      cover.inelnet_office:
+        state: open
+        current_cover_position: 50  # Diffused light for video
+
+# ==============================================================================
+# USAGE EXAMPLE
+# ==============================================================================
+# To use these scenes, add them to your configuration.yaml or scenes.yaml
+# Then call them with:
+#
+# service: scene.turn_on
+# target:
+#   entity_id: scene.inelnet_morning
+#
+# Or use them in automations:
+#
+# automation:
+#   - alias: "Morning blinds"
+#     trigger:
+#       - platform: time
+#         at: "07:00:00"
+#     action:
+#       - service: scene.turn_on
+#         target:
+#           entity_id: scene.inelnet_morning

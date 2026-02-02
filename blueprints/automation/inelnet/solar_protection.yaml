@@ -1,0 +1,121 @@
+blueprint:
+  name: InelNET Solar Protection
+  description: >
+    Automatically close blinds when the sun is hitting a facade directly.
+    Blinds will open again when solar exposure drops below the threshold.
+    Uses the InelNET solar exposure sensors to determine when to activate.
+  domain: automation
+  author: InelNET Integration
+  input:
+    facade:
+      name: Facade Orientation
+      description: Which facade to protect from sun
+      selector:
+        select:
+          options:
+            - label: "North (N)"
+              value: "N"
+            - label: "North-East (NE)"
+              value: "NE"
+            - label: "East (E)"
+              value: "E"
+            - label: "South-East (SE)"
+              value: "SE"
+            - label: "South (S)"
+              value: "S"
+            - label: "South-West (SV)"
+              value: "SV"
+            - label: "West (V)"
+              value: "V"
+            - label: "North-West (NV)"
+              value: "NV"
+    solar_sensor:
+      name: Solar Exposure Sensor
+      description: The InelNET solar exposure sensor for this facade
+      selector:
+        entity:
+          domain: sensor
+          integration: inelnet
+    exposure_threshold:
+      name: Exposure Threshold
+      description: Close blinds when solar exposure exceeds this percentage
+      default: 60
+      selector:
+        number:
+          min: 30
+          max: 90
+          step: 5
+          unit_of_measurement: "%"
+    close_position:
+      name: Close Position
+      description: How much to close (0=fully closed, higher=more open for light)
+      default: 20
+      selector:
+        number:
+          min: 0
+          max: 50
+          step: 5
+          unit_of_measurement: "%"
+    min_temperature:
+      name: Minimum Temperature
+      description: Only activate protection above this outdoor temperature
+      default: 22
+      selector:
+        number:
+          min: 15
+          max: 35
+          step: 1
+          unit_of_measurement: "°C"
+    weather_entity:
+      name: Weather Entity (Optional)
+      description: Weather entity to check temperature. Leave empty to skip temperature check.
+      default: ""
+      selector:
+        entity:
+          domain: weather
+
+mode: restart
+max_exceeded: silent
+
+trigger:
+  - platform: numeric_state
+    entity_id: !input solar_sensor
+    above: !input exposure_threshold
+    id: "sun_high"
+  - platform: numeric_state
+    entity_id: !input solar_sensor
+    below: !input exposure_threshold
+    for:
+      minutes: 10
+    id: "sun_low"
+
+condition: []
+
+action:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id: "sun_high"
+          - condition: or
+            conditions:
+              - condition: template
+                value_template: "{{ not weather_entity }}"
+              - condition: numeric_state
+                entity_id: !input weather_entity
+                attribute: temperature
+                above: !input min_temperature
+        sequence:
+          - service: inelnet.close_facade
+            data:
+              facade: !input facade
+              position: !input close_position
+      - conditions:
+          - condition: trigger
+            id: "sun_low"
+        sequence:
+          - service: inelnet.open_facade
+            data:
+              facade: !input facade
+
+variables:
+  weather_entity: !input weather_entity

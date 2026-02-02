@@ -1,0 +1,86 @@
+blueprint:
+  name: InelNET Morning Routine
+  description: >
+    Automatically open blinds in the morning.
+    Supports different times for weekdays and weekends.
+    Can optionally check if someone is home before activating.
+  domain: automation
+  author: InelNET Integration
+  input:
+    time_weekday:
+      name: Weekday Time
+      description: What time to open blinds on weekdays (Mon-Fri)
+      default: "07:00:00"
+      selector:
+        time:
+    time_weekend:
+      name: Weekend Time
+      description: What time to open blinds on weekends (Sat-Sun)
+      default: "09:00:00"
+      selector:
+        time:
+    target_covers:
+      name: Target Blinds
+      description: Which blinds to control
+      selector:
+        target:
+          entity:
+            domain: cover
+            integration: inelnet
+    presence_entity:
+      name: Presence Entity (Optional)
+      description: Only open if this entity is 'home' or 'on'. Leave empty to always open.
+      default: ""
+      selector:
+        entity:
+          domain:
+            - person
+            - binary_sensor
+            - input_boolean
+
+mode: single
+max_exceeded: silent
+
+trigger:
+  - platform: time
+    at: !input time_weekday
+    id: weekday
+  - platform: time
+    at: !input time_weekend
+    id: weekend
+
+condition:
+  - condition: or
+    conditions:
+      - condition: and
+        conditions:
+          - condition: trigger
+            id: weekday
+          - condition: time
+            weekday:
+              - mon
+              - tue
+              - wed
+              - thu
+              - fri
+      - condition: and
+        conditions:
+          - condition: trigger
+            id: weekend
+          - condition: time
+            weekday:
+              - sat
+              - sun
+  - condition: or
+    conditions:
+      - condition: template
+        value_template: "{{ not presence_entity }}"
+      - condition: template
+        value_template: "{{ states(presence_entity) in ['home', 'on'] }}"
+
+action:
+  - service: cover.open_cover
+    target: !input target_covers
+
+variables:
+  presence_entity: !input presence_entity

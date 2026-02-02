@@ -30,3 +30,103 @@ send_command:
               value: "192"
             - label: "SHORT DOWN"
               value: "208"
+
+open_facade:
+  name: Open Facade
+  description: Open all blinds on a specific facade orientation
+  fields:
+    facade:
+      name: Facade
+      description: Facade orientation (N, NE, E, SE, S, SV, V, NV)
+      required: true
+      example: "S"
+      selector:
+        select:
+          options:
+            - "N"
+            - "NE"
+            - "E"
+            - "SE"
+            - "S"
+            - "SV"
+            - "V"
+            - "NV"
+
+close_facade:
+  name: Close Facade
+  description: Close all blinds on a specific facade orientation
+  fields:
+    facade:
+      name: Facade
+      description: Facade orientation (N, NE, E, SE, S, SV, V, NV)
+      required: true
+      example: "S"
+      selector:
+        select:
+          options:
+            - "N"
+            - "NE"
+            - "E"
+            - "SE"
+            - "S"
+            - "SV"
+            - "V"
+            - "NV"
+    position:
+      name: Position
+      description: Target position (0=fully closed, 100=fully open). If not specified, closes completely.
+      required: false
+      default: 0
+      example: 20
+      selector:
+        number:
+          min: 0
+          max: 100
+          step: 5
+          unit_of_measurement: "%"
+
+open_floor:
+  name: Open Floor
+  description: Open all blinds on a specific floor
+  fields:
+    floor:
+      name: Floor
+      description: Floor name (parter, etaj, mansarda, demisol)
+      required: true
+      example: "parter"
+      selector:
+        select:
+          options:
+            - "parter"
+            - "etaj"
+            - "mansarda"
+            - "demisol"
+
+close_floor:
+  name: Close Floor
+  description: Close all blinds on a specific floor
+  fields:
+    floor:
+      name: Floor
+      description: Floor name (parter, etaj, mansarda, demisol)
+      required: true
+      example: "parter"
+      selector:
+        select:
+          options:
+            - "parter"
+            - "etaj"
+            - "mansarda"
+            - "demisol"
+    position:
+      name: Position
+      description: Target position (0=fully closed, 100=fully open). If not specified, closes completely.
+      required: false
+      default: 0
+      example: 20
+      selector:
+        number:
+          min: 0
+          max: 100
+          step: 5
+          unit_of_measurement: "%"

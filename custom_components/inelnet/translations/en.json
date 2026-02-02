@@ -87,6 +87,19 @@
           "retry_count": "Command retries",
           "retry_delay": "Delay between retries"
         }
+      },
+      "automation_settings": {
+        "title": "Automation Settings",
+        "description": "Configure solar and weather automation features",
+        "data": {
+          "enable_sensors": "Enable virtual sensors",
+          "enable_solar_automation": "Enable solar automation",
+          "solar_threshold": "Solar exposure threshold",
+          "enable_weather_protection": "Enable weather protection",
+          "weather_entity": "Weather entity",
+          "max_temperature": "Maximum temperature",
+          "max_wind_speed": "Maximum wind speed"
+        }
       }
     },
     "abort": {

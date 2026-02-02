@@ -1,0 +1,90 @@
+blueprint:
+  name: InelNET Evening Privacy
+  description: >
+    Automatically close blinds at sunset or at a specific time for privacy.
+    Can use sunset with an optional offset, or a fixed time.
+  domain: automation
+  author: InelNET Integration
+  input:
+    trigger_type:
+      name: Trigger Type
+      description: When to close blinds
+      default: "sunset"
+      selector:
+        select:
+          options:
+            - label: "At Sunset"
+              value: "sunset"
+            - label: "Fixed Time"
+              value: "fixed"
+    fixed_time:
+      name: Fixed Time
+      description: Time to close (only used if trigger type is "Fixed Time")
+      default: "21:00:00"
+      selector:
+        time:
+    sunset_offset:
+      name: Sunset Offset
+      description: Minutes before/after sunset (negative = before, positive = after)
+      default: 0
+      selector:
+        number:
+          min: -60
+          max: 60
+          step: 5
+          unit_of_measurement: "min"
+    target_covers:
+      name: Target Blinds
+      description: Which blinds to control
+      selector:
+        target:
+          entity:
+            domain: cover
+            integration: inelnet
+    close_position:
+      name: Close Position
+      description: Target position (0=fully closed)
+      default: 0
+      selector:
+        number:
+          min: 0
+          max: 30
+          step: 5
+          unit_of_measurement: "%"
+
+mode: single
+max_exceeded: silent
+
+trigger:
+  - platform: sun
+    event: sunset
+    offset: !input sunset_offset
+    id: sunset_trigger
+  - platform: time
+    at: !input fixed_time
+    id: fixed_trigger
+
+condition:
+  - condition: or
+    conditions:
+      - condition: and
+        conditions:
+          - condition: trigger
+            id: sunset_trigger
+          - condition: template
+            value_template: "{{ trigger_type == 'sunset' }}"
+      - condition: and
+        conditions:
+          - condition: trigger
+            id: fixed_trigger
+          - condition: template
+            value_template: "{{ trigger_type == 'fixed' }}"
+
+action:
+  - service: cover.set_cover_position
+    target: !input target_covers
+    data:
+      position: !input close_position
+
+variables:
+  trigger_type: !input trigger_type

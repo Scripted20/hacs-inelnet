@@ -1,0 +1,368 @@
+# InelNET Example Automations
+# Copy these automations to your Home Assistant configuration
+# Adjust entity_ids to match your actual blind names
+
+# ==============================================================================
+# BASIC TIME-BASED AUTOMATIONS
+# ==============================================================================
+
+automation:
+  # Open all blinds in the morning
+  - id: inelnet_morning_open
+    alias: "InelNET - Morning Open"
+    description: "Open all blinds at sunrise"
+    trigger:
+      - platform: sun
+        event: sunrise
+        offset: "00:30:00"
+    condition:
+      - condition: time
+        weekday:
+          - mon
+          - tue
+          - wed
+          - thu
+          - fri
+    action:
+      - service: cover.open_cover
+        target:
+          entity_id: cover.all_blinds
+    mode: single
+
+  # Weekend morning - later opening
+  - id: inelnet_weekend_morning
+    alias: "InelNET - Weekend Morning"
+    description: "Open blinds later on weekends"
+    trigger:
+      - platform: time
+        at: "09:00:00"
+    condition:
+      - condition: time
+        weekday:
+          - sat
+          - sun
+    action:
+      - service: cover.open_cover
+        target:
+          entity_id: cover.all_blinds
+    mode: single
+
+  # Close at sunset
+  - id: inelnet_evening_close
+    alias: "InelNET - Evening Close"
+    description: "Close all blinds at sunset"
+    trigger:
+      - platform: sun
+        event: sunset
+        offset: "-00:15:00"
+    action:
+      - service: cover.close_cover
+        target:
+          entity_id: cover.all_blinds
+    mode: single
+
+# ==============================================================================
+# SOLAR PROTECTION AUTOMATIONS
+# ==============================================================================
+
+  # Close south blinds when sun is strong
+  - id: inelnet_solar_south
+    alias: "InelNET - South Solar Protection"
+    description: "Close south blinds when solar exposure is high"
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.inelnet_solar_exposure_s
+        above: 60
+    condition:
+      - condition: numeric_state
+        entity_id: weather.home
+        attribute: temperature
+        above: 22
+    action:
+      - service: inelnet.close_facade
+        data:
+          facade: "S"
+          position: 20
+    mode: single
+
+  # Open south blinds when sun moves away
+  - id: inelnet_solar_south_open
+    alias: "InelNET - South Sun Gone"
+    description: "Open south blinds when sun exposure drops"
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.inelnet_solar_exposure_s
+        below: 30
+        for:
+          minutes: 15
+    action:
+      - service: inelnet.open_facade
+        data:
+          facade: "S"
+    mode: single
+
+# ==============================================================================
+# WEATHER-BASED AUTOMATIONS
+# ==============================================================================
+
+  # Close all blinds during heatwave
+  - id: inelnet_heatwave_protection
+    alias: "InelNET - Heatwave Protection"
+    description: "Close blinds when temperature is very high"
+    trigger:
+      - platform: numeric_state
+        entity_id: weather.home
+        attribute: temperature
+        above: 32
+    action:
+      - service: cover.set_cover_position
+        target:
+          entity_id: cover.all_blinds
+        data:
+          position: 15
+    mode: single
+
+  # Close blinds during high wind
+  - id: inelnet_wind_protection
+    alias: "InelNET - Wind Protection"
+    description: "Close blinds during strong wind"
+    trigger:
+      - platform: numeric_state
+        entity_id: weather.home
+        attribute: wind_speed
+        above: 40
+    action:
+      - service: cover.close_cover
+        target:
+          entity_id: cover.all_blinds
+    mode: single
+
+  # Open after weather normalizes
+  - id: inelnet_weather_normal
+    alias: "InelNET - Weather Normal"
+    description: "Open blinds when weather is normal again"
+    trigger:
+      - platform: numeric_state
+        entity_id: weather.home
+        attribute: temperature
+        below: 30
+        for:
+          minutes: 30
+    condition:
+      - condition: numeric_state
+        entity_id: weather.home
+        attribute: wind_speed
+        below: 30
+      - condition: sun
+        after: sunrise
+        before: sunset
+    action:
+      - service: cover.open_cover
+        target:
+          entity_id: cover.all_blinds
+    mode: single
+
+# ==============================================================================
+# PRESENCE-BASED AUTOMATIONS
+# ==============================================================================
+
+  # Close blinds when leaving home
+  - id: inelnet_leaving_home
+    alias: "InelNET - Leaving Home"
+    description: "Close blinds when everyone leaves"
+    trigger:
+      - platform: state
+        entity_id: group.family
+        to: "not_home"
+    condition:
+      - condition: sun
+        after: sunrise
+        before: sunset
+    action:
+      - service: cover.set_cover_position
+        target:
+          entity_id: cover.all_blinds
+        data:
+          position: 30
+    mode: single
+
+  # Open blinds when arriving home
+  - id: inelnet_arriving_home
+    alias: "InelNET - Arriving Home"
+    description: "Open blinds when someone arrives"
+    trigger:
+      - platform: state
+        entity_id: group.family
+        to: "home"
+    condition:
+      - condition: sun
+        after: sunrise
+        before: sunset
+    action:
+      - service: cover.open_cover
+        target:
+          entity_id: cover.all_blinds
+    mode: single
+
+# ==============================================================================
+# ROOM-SPECIFIC AUTOMATIONS
+# ==============================================================================
+
+  # Bedroom dark for sleeping
+  - id: inelnet_bedtime
+    alias: "InelNET - Bedtime"
+    description: "Close bedroom blinds for sleep"
+    trigger:
+      - platform: time
+        at: "22:30:00"
+    action:
+      - service: cover.close_cover
+        target:
+          entity_id:
+            - cover.inelnet_bedroom_master
+            - cover.inelnet_bedroom_kids
+    mode: single
+
+  # Office glare reduction during work hours
+  - id: inelnet_office_glare
+    alias: "InelNET - Office Glare"
+    description: "Reduce glare in office during work hours"
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.inelnet_solar_exposure_e
+        above: 50
+    condition:
+      - condition: time
+        after: "08:00:00"
+        before: "18:00:00"
+        weekday:
+          - mon
+          - tue
+          - wed
+          - thu
+          - fri
+    action:
+      - service: cover.set_cover_position
+        target:
+          entity_id: cover.inelnet_office
+        data:
+          position: 40
+    mode: single
+
+# ==============================================================================
+# SCENE ACTIVATIONS
+# ==============================================================================
+
+  # Movie time button
+  - id: inelnet_movie_button
+    alias: "InelNET - Movie Mode Button"
+    description: "Activate movie mode when button pressed"
+    trigger:
+      - platform: state
+        entity_id: input_boolean.movie_mode
+        to: "on"
+    action:
+      - service: scene.turn_on
+        target:
+          entity_id: scene.inelnet_movie
+    mode: single
+
+  # Disable movie mode
+  - id: inelnet_movie_off
+    alias: "InelNET - Movie Mode Off"
+    description: "Restore blinds when movie mode ends"
+    trigger:
+      - platform: state
+        entity_id: input_boolean.movie_mode
+        to: "off"
+    action:
+      - service: cover.set_cover_position
+        target:
+          entity_id: cover.inelnet_living_room
+        data:
+          position: 50
+    mode: single
+
+# ==============================================================================
+# FACADE SERVICE EXAMPLES
+# ==============================================================================
+
+  # Close entire south facade at noon in summer
+  - id: inelnet_noon_south
+    alias: "InelNET - Noon South Protection"
+    description: "Close south facade during peak sun"
+    trigger:
+      - platform: time
+        at: "12:00:00"
+    condition:
+      - condition: template
+        value_template: "{{ now().month in [6, 7, 8] }}"
+    action:
+      - service: inelnet.close_facade
+        data:
+          facade: "S"
+          position: 20
+    mode: single
+
+  # Open all west facade in morning
+  - id: inelnet_morning_west
+    alias: "InelNET - Morning West Open"
+    description: "Open west facade in morning (no sun yet)"
+    trigger:
+      - platform: time
+        at: "07:00:00"
+    action:
+      - service: inelnet.open_facade
+        data:
+          facade: "V"
+    mode: single
+
+# ==============================================================================
+# FLOOR SERVICE EXAMPLES
+# ==============================================================================
+
+  # Open ground floor, close upstairs during day
+  - id: inelnet_day_floors
+    alias: "InelNET - Day Floor Settings"
+    description: "Different settings per floor during day"
+    trigger:
+      - platform: time
+        at: "10:00:00"
+    condition:
+      - condition: state
+        entity_id: group.family
+        state: "not_home"
+    action:
+      - service: inelnet.open_floor
+        data:
+          floor: "parter"
+      - service: inelnet.close_floor
+        data:
+          floor: "etaj"
+          position: 30
+    mode: single
+
+# ==============================================================================
+# NOTIFICATIONS
+# ==============================================================================
+
+  # Notify if blinds moving while away
+  - id: inelnet_away_movement
+    alias: "InelNET - Away Movement Alert"
+    description: "Notify if blinds move while away"
+    trigger:
+      - platform: state
+        entity_id: cover.all_blinds
+    condition:
+      - condition: state
+        entity_id: group.family
+        state: "not_home"
+      - condition: state
+        entity_id: input_boolean.away_mode
+        state: "off"
+    action:
+      - service: notify.mobile_app
+        data:
+          title: "InelNET Alert"
+          message: "Blinds moved while you're away!"
+    mode: single

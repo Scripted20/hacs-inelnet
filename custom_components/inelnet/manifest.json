@@ -3,11 +3,12 @@
   "name": "InelNET Blinds Control",
   "codeowners": ["@Scripted20"],
   "config_flow": true,
-  "dependencies": [],
+  "dependencies": ["sun"],
+  "after_dependencies": ["weather"],
   "documentation": "https://github.com/Scripted20/hacs-inelnet",
   "integration_type": "hub",
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/Scripted20/hacs-inelnet/issues",
   "requirements": ["aiohttp>=3.8.0"],
-  "version": "1.1.0"
+  "version": "2.0.0"
 }

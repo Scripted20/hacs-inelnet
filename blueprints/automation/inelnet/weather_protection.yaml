@@ -1,0 +1,136 @@
+blueprint:
+  name: InelNET Weather Protection
+  description: >
+    Automatically close blinds during extreme weather conditions.
+    Protects against high temperatures (heatwave) and strong winds.
+    Reopens when conditions return to normal.
+  domain: automation
+  author: InelNET Integration
+  input:
+    weather_entity:
+      name: Weather Entity
+      description: Weather integration to monitor
+      selector:
+        entity:
+          domain: weather
+    max_temperature:
+      name: Maximum Temperature
+      description: Close blinds when temperature exceeds this value
+      default: 32
+      selector:
+        number:
+          min: 28
+          max: 45
+          step: 1
+          unit_of_measurement: "°C"
+    max_wind_speed:
+      name: Maximum Wind Speed
+      description: Close blinds when wind speed exceeds this value
+      default: 40
+      selector:
+        number:
+          min: 20
+          max: 80
+          step: 5
+          unit_of_measurement: "km/h"
+    target_covers:
+      name: Target Blinds
+      description: Which blinds to control
+      selector:
+        target:
+          entity:
+            domain: cover
+            integration: inelnet
+    close_position:
+      name: Close Position
+      description: How much to close during extreme weather
+      default: 10
+      selector:
+        number:
+          min: 0
+          max: 30
+          step: 5
+          unit_of_measurement: "%"
+    protect_wind_only:
+      name: Full Close for Wind
+      description: Fully close (position 0) during high wind regardless of close position setting
+      default: true
+      selector:
+        boolean:
+
+mode: restart
+max_exceeded: silent
+
+trigger:
+  - platform: numeric_state
+    entity_id: !input weather_entity
+    attribute: temperature
+    above: !input max_temperature
+    id: "temp_high"
+  - platform: numeric_state
+    entity_id: !input weather_entity
+    attribute: temperature
+    below: !input max_temperature
+    for:
+      minutes: 30
+    id: "temp_normal"
+  - platform: numeric_state
+    entity_id: !input weather_entity
+    attribute: wind_speed
+    above: !input max_wind_speed
+    id: "wind_high"
+  - platform: numeric_state
+    entity_id: !input weather_entity
+    attribute: wind_speed
+    below: !input max_wind_speed
+    for:
+      minutes: 15
+    id: "wind_normal"
+
+condition: []
+
+action:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id: "wind_high"
+        sequence:
+          - service: cover.set_cover_position
+            target: !input target_covers
+            data:
+              position: >
+                {% if protect_wind_only %}
+                  0
+                {% else %}
+                  {{ close_position }}
+                {% endif %}
+      - conditions:
+          - condition: trigger
+            id: "temp_high"
+        sequence:
+          - service: cover.set_cover_position
+            target: !input target_covers
+            data:
+              position: !input close_position
+      - conditions:
+          - condition: or
+            conditions:
+              - condition: trigger
+                id: "temp_normal"
+              - condition: trigger
+                id: "wind_normal"
+          - condition: numeric_state
+            entity_id: !input weather_entity
+            attribute: temperature
+            below: !input max_temperature
+          - condition: numeric_state
+            entity_id: !input weather_entity
+            attribute: wind_speed
+            below: !input max_wind_speed
+        sequence:
+          - service: cover.open_cover
+            target: !input target_covers
+
+variables:
+  close_position: !input close_position
+  protect_wind_only: !input protect_wind_only

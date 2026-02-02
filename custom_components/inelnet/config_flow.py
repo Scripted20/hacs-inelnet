@@ -20,6 +20,8 @@ from homeassistant.helpers.selector import (
     SelectSelectorMode,
     TextSelector,
     BooleanSelector,
+    EntitySelector,
+    EntitySelectorConfig,
 )
 
 from .const import (
@@ -30,7 +32,17 @@ from .const import (
     CONF_FACADE,
     CONF_FLOOR,
     CONF_SHADED,
+    CONF_ENABLE_SOLAR_AUTOMATION,
+    CONF_SOLAR_THRESHOLD,
+    CONF_WEATHER_ENTITY,
+    CONF_ENABLE_WEATHER_PROTECTION,
+    CONF_MAX_TEMPERATURE,
+    CONF_MAX_WIND_SPEED,
+    CONF_ENABLE_SENSORS,
     DEFAULT_TRAVEL_TIME,
+    DEFAULT_SOLAR_THRESHOLD,
+    DEFAULT_MAX_TEMPERATURE,
+    DEFAULT_MAX_WIND_SPEED,
     FACADES,
     FLOORS,
 )
@@ -195,6 +207,8 @@ class InelNetOptionsFlow(config_entries.OptionsFlow):
                 return await self.async_step_remove_device()
             elif action == "settings":
                 return await self.async_step_settings()
+            elif action == "automation":
+                return await self.async_step_automation_settings()
 
         return self.async_show_form(
             step_id="init",
@@ -205,6 +219,7 @@ class InelNetOptionsFlow(config_entries.OptionsFlow):
                             {"value": "edit_device", "label": "Edit existing device"},
                             {"value": "add_device", "label": "Add new device"},
                             {"value": "remove_device", "label": "Remove device"},
+                            {"value": "automation", "label": "Automation settings"},
                             {"value": "settings", "label": "Connection settings"},
                         ],
                         mode=SelectSelectorMode.LIST,
@@ -382,6 +397,7 @@ class InelNetOptionsFlow(config_entries.OptionsFlow):
                 self.config_entry,
                 data=new_data,
                 options={
+                    **self.config_entry.options,
                     "retry_count": int(user_input.get("retry_count", 2)),
                     "retry_delay": float(user_input.get("retry_delay", 0.8)),
                 },
@@ -397,6 +413,75 @@ class InelNetOptionsFlow(config_entries.OptionsFlow):
                 ),
                 vol.Required("retry_delay", default=self.config_entry.options.get("retry_delay", 0.8)): NumberSelector(
                     NumberSelectorConfig(min=0.3, max=3.0, step=0.1, mode=NumberSelectorMode.BOX, unit_of_measurement="s")
+                ),
+            }),
+        )
+
+    async def async_step_automation_settings(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Configure automation settings."""
+        if user_input is not None:
+            # Update options with automation settings
+            new_options = dict(self.config_entry.options)
+            new_options[CONF_ENABLE_SENSORS] = user_input.get(CONF_ENABLE_SENSORS, True)
+            new_options[CONF_ENABLE_SOLAR_AUTOMATION] = user_input.get(CONF_ENABLE_SOLAR_AUTOMATION, False)
+            new_options[CONF_SOLAR_THRESHOLD] = user_input.get(CONF_SOLAR_THRESHOLD, DEFAULT_SOLAR_THRESHOLD)
+            new_options[CONF_ENABLE_WEATHER_PROTECTION] = user_input.get(CONF_ENABLE_WEATHER_PROTECTION, False)
+            new_options[CONF_WEATHER_ENTITY] = user_input.get(CONF_WEATHER_ENTITY, "")
+            new_options[CONF_MAX_TEMPERATURE] = user_input.get(CONF_MAX_TEMPERATURE, DEFAULT_MAX_TEMPERATURE)
+            new_options[CONF_MAX_WIND_SPEED] = user_input.get(CONF_MAX_WIND_SPEED, DEFAULT_MAX_WIND_SPEED)
+
+            self.hass.config_entries.async_update_entry(
+                self.config_entry,
+                options=new_options,
+            )
+
+            # Reload to apply sensor changes
+            await self.hass.config_entries.async_reload(self.config_entry.entry_id)
+
+            return self.async_create_entry(title="", data={})
+
+        current_options = self.config_entry.options
+
+        return self.async_show_form(
+            step_id="automation_settings",
+            data_schema=vol.Schema({
+                vol.Required(
+                    CONF_ENABLE_SENSORS,
+                    default=current_options.get(CONF_ENABLE_SENSORS, True)
+                ): BooleanSelector(),
+                vol.Required(
+                    CONF_ENABLE_SOLAR_AUTOMATION,
+                    default=current_options.get(CONF_ENABLE_SOLAR_AUTOMATION, False)
+                ): BooleanSelector(),
+                vol.Required(
+                    CONF_SOLAR_THRESHOLD,
+                    default=current_options.get(CONF_SOLAR_THRESHOLD, DEFAULT_SOLAR_THRESHOLD)
+                ): NumberSelector(
+                    NumberSelectorConfig(min=30, max=90, step=5, mode=NumberSelectorMode.SLIDER, unit_of_measurement="%")
+                ),
+                vol.Required(
+                    CONF_ENABLE_WEATHER_PROTECTION,
+                    default=current_options.get(CONF_ENABLE_WEATHER_PROTECTION, False)
+                ): BooleanSelector(),
+                vol.Optional(
+                    CONF_WEATHER_ENTITY,
+                    default=current_options.get(CONF_WEATHER_ENTITY, "")
+                ): EntitySelector(
+                    EntitySelectorConfig(domain="weather")
+                ),
+                vol.Required(
+                    CONF_MAX_TEMPERATURE,
+                    default=current_options.get(CONF_MAX_TEMPERATURE, DEFAULT_MAX_TEMPERATURE)
+                ): NumberSelector(
+                    NumberSelectorConfig(min=25, max=45, step=1, mode=NumberSelectorMode.SLIDER, unit_of_measurement="°C")
+                ),
+                vol.Required(
+                    CONF_MAX_WIND_SPEED,
+                    default=current_options.get(CONF_MAX_WIND_SPEED, DEFAULT_MAX_WIND_SPEED)
+                ): NumberSelector(
+                    NumberSelectorConfig(min=20, max=80, step=5, mode=NumberSelectorMode.SLIDER, unit_of_measurement="km/h")
                 ),
             }),
         )

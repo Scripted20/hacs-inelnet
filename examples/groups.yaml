@@ -1,0 +1,178 @@
+# InelNET Example Groups
+# Copy these groups to your Home Assistant configuration
+# Adjust entity_ids to match your actual blind names
+
+# ==============================================================================
+# COVER GROUPS BY FACADE
+# ==============================================================================
+
+cover:
+  # Group all south-facing blinds
+  - platform: group
+    name: "South Facade Blinds"
+    unique_id: inelnet_south_facade
+    entities:
+      - cover.inelnet_south_1
+      - cover.inelnet_south_2
+      - cover.inelnet_south_3
+
+  # Group all north-facing blinds
+  - platform: group
+    name: "North Facade Blinds"
+    unique_id: inelnet_north_facade
+    entities:
+      - cover.inelnet_north_1
+      - cover.inelnet_north_2
+
+  # Group all east-facing blinds
+  - platform: group
+    name: "East Facade Blinds"
+    unique_id: inelnet_east_facade
+    entities:
+      - cover.inelnet_east_1
+      - cover.inelnet_east_2
+
+  # Group all west-facing blinds
+  - platform: group
+    name: "West Facade Blinds"
+    unique_id: inelnet_west_facade
+    entities:
+      - cover.inelnet_west_1
+      - cover.inelnet_west_2
+
+# ==============================================================================
+# COVER GROUPS BY FLOOR
+# ==============================================================================
+
+  # Ground floor (Parter)
+  - platform: group
+    name: "Ground Floor Blinds"
+    unique_id: inelnet_ground_floor
+    entities:
+      - cover.inelnet_living_room
+      - cover.inelnet_kitchen
+      - cover.inelnet_dining_room
+
+  # First floor (Etaj)
+  - platform: group
+    name: "First Floor Blinds"
+    unique_id: inelnet_first_floor
+    entities:
+      - cover.inelnet_bedroom_master
+      - cover.inelnet_bedroom_kids
+      - cover.inelnet_bathroom
+      - cover.inelnet_office
+
+  # Attic (Mansarda)
+  - platform: group
+    name: "Attic Blinds"
+    unique_id: inelnet_attic
+    entities:
+      - cover.inelnet_attic_1
+      - cover.inelnet_attic_2
+
+# ==============================================================================
+# COVER GROUPS BY ROOM TYPE
+# ==============================================================================
+
+  # All bedrooms
+  - platform: group
+    name: "Bedroom Blinds"
+    unique_id: inelnet_bedrooms
+    entities:
+      - cover.inelnet_bedroom_master
+      - cover.inelnet_bedroom_kids
+      - cover.inelnet_bedroom_guest
+
+  # All living areas
+  - platform: group
+    name: "Living Area Blinds"
+    unique_id: inelnet_living_areas
+    entities:
+      - cover.inelnet_living_room
+      - cover.inelnet_dining_room
+      - cover.inelnet_family_room
+
+# ==============================================================================
+# ALL BLINDS GROUP
+# ==============================================================================
+
+  # All InelNET blinds
+  - platform: group
+    name: "All Blinds"
+    unique_id: inelnet_all_blinds
+    entities:
+      - cover.inelnet_living_room
+      - cover.inelnet_kitchen
+      - cover.inelnet_dining_room
+      - cover.inelnet_bedroom_master
+      - cover.inelnet_bedroom_kids
+      - cover.inelnet_bathroom
+      - cover.inelnet_office
+
+# ==============================================================================
+# HELPER GROUPS (using group integration)
+# ==============================================================================
+
+group:
+  # Legacy group format - still useful for some cases
+  inelnet_morning_blinds:
+    name: "Morning Blinds"
+    entities:
+      - cover.inelnet_bedroom_master
+      - cover.inelnet_bedroom_kids
+      - cover.inelnet_kitchen
+
+  inelnet_privacy_blinds:
+    name: "Privacy Blinds"
+    entities:
+      - cover.inelnet_bedroom_master
+      - cover.inelnet_bathroom
+
+# ==============================================================================
+# USAGE EXAMPLES
+# ==============================================================================
+#
+# Control all south-facing blinds:
+# service: cover.close_cover
+# target:
+#   entity_id: cover.south_facade_blinds
+#
+# Set position for all ground floor:
+# service: cover.set_cover_position
+# target:
+#   entity_id: cover.ground_floor_blinds
+# data:
+#   position: 50
+#
+# Open all blinds:
+# service: cover.open_cover
+# target:
+#   entity_id: cover.all_blinds
+#
+# ==============================================================================
+# TEMPLATE SENSORS FOR GROUP STATUS
+# ==============================================================================
+#
+# Add these to get useful information about your blind groups:
+#
+# template:
+#   - sensor:
+#       - name: "South Facade Average Position"
+#         unique_id: inelnet_south_avg_position
+#         unit_of_measurement: "%"
+#         state: >
+#           {% set covers = expand('cover.south_facade_blinds') %}
+#           {% set positions = covers | map(attribute='attributes.current_cover_position') | list %}
+#           {{ (positions | sum / positions | length) | round(0) if positions else 0 }}
+#
+#   - binary_sensor:
+#       - name: "Any Blind Open"
+#         unique_id: inelnet_any_open
+#         state: >
+#           {{ expand('cover.all_blinds') | selectattr('state', 'eq', 'open') | list | length > 0 }}
+#
+#       - name: "All Blinds Closed"
+#         unique_id: inelnet_all_closed
+#         state: >
+#           {{ expand('cover.all_blinds') | selectattr('state', 'eq', 'closed') | list | length == expand('cover.all_blinds') | list | length }}

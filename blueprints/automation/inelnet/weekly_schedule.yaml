@@ -1,0 +1,164 @@
+blueprint:
+  name: InelNET Weekly Schedule
+  description: >
+    Set different open/close times for each day of the week.
+    Perfect for adapting blind schedules to your daily routine.
+  domain: automation
+  author: InelNET Integration
+  input:
+    monday_open:
+      name: Monday - Open Time
+      default: "07:00:00"
+      selector:
+        time:
+    monday_close:
+      name: Monday - Close Time
+      default: "21:00:00"
+      selector:
+        time:
+    tuesday_open:
+      name: Tuesday - Open Time
+      default: "07:00:00"
+      selector:
+        time:
+    tuesday_close:
+      name: Tuesday - Close Time
+      default: "21:00:00"
+      selector:
+        time:
+    wednesday_open:
+      name: Wednesday - Open Time
+      default: "07:00:00"
+      selector:
+        time:
+    wednesday_close:
+      name: Wednesday - Close Time
+      default: "21:00:00"
+      selector:
+        time:
+    thursday_open:
+      name: Thursday - Open Time
+      default: "07:00:00"
+      selector:
+        time:
+    thursday_close:
+      name: Thursday - Close Time
+      default: "21:00:00"
+      selector:
+        time:
+    friday_open:
+      name: Friday - Open Time
+      default: "07:00:00"
+      selector:
+        time:
+    friday_close:
+      name: Friday - Close Time
+      default: "22:00:00"
+      selector:
+        time:
+    saturday_open:
+      name: Saturday - Open Time
+      default: "09:00:00"
+      selector:
+        time:
+    saturday_close:
+      name: Saturday - Close Time
+      default: "23:00:00"
+      selector:
+        time:
+    sunday_open:
+      name: Sunday - Open Time
+      default: "09:00:00"
+      selector:
+        time:
+    sunday_close:
+      name: Sunday - Close Time
+      default: "22:00:00"
+      selector:
+        time:
+    target_covers:
+      name: Target Blinds
+      description: Which blinds to control
+      selector:
+        target:
+          entity:
+            domain: cover
+            integration: inelnet
+
+mode: single
+max_exceeded: silent
+
+trigger:
+  # Monday
+  - platform: time
+    at: !input monday_open
+    id: mon_open
+  - platform: time
+    at: !input monday_close
+    id: mon_close
+  # Tuesday
+  - platform: time
+    at: !input tuesday_open
+    id: tue_open
+  - platform: time
+    at: !input tuesday_close
+    id: tue_close
+  # Wednesday
+  - platform: time
+    at: !input wednesday_open
+    id: wed_open
+  - platform: time
+    at: !input wednesday_close
+    id: wed_close
+  # Thursday
+  - platform: time
+    at: !input thursday_open
+    id: thu_open
+  - platform: time
+    at: !input thursday_close
+    id: thu_close
+  # Friday
+  - platform: time
+    at: !input friday_open
+    id: fri_open
+  - platform: time
+    at: !input friday_close
+    id: fri_close
+  # Saturday
+  - platform: time
+    at: !input saturday_open
+    id: sat_open
+  - platform: time
+    at: !input saturday_close
+    id: sat_close
+  # Sunday
+  - platform: time
+    at: !input sunday_open
+    id: sun_open
+  - platform: time
+    at: !input sunday_close
+    id: sun_close
+
+condition:
+  - condition: template
+    value_template: >
+      {% set day_map = {
+        'mon': 0, 'tue': 1, 'wed': 2, 'thu': 3, 'fri': 4, 'sat': 5, 'sun': 6
+      } %}
+      {% set trigger_day = trigger.id.split('_')[0] %}
+      {{ now().weekday() == day_map[trigger_day] }}
+
+action:
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ 'open' in trigger.id }}"
+        sequence:
+          - service: cover.open_cover
+            target: !input target_covers
+      - conditions:
+          - condition: template
+            value_template: "{{ 'close' in trigger.id }}"
+        sequence:
+          - service: cover.close_cover
+            target: !input target_covers

@@ -6,17 +6,43 @@ from typing import Any
 
 import aiohttp
 import asyncio
+import voluptuous as vol
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, ServiceCall
+from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from .const import DOMAIN, CONF_HOST, CONF_DEVICES, DEFAULT_TIMEOUT
+from .const import (
+    DOMAIN,
+    CONF_HOST,
+    CONF_DEVICES,
+    CONF_FACADE,
+    CONF_FLOOR,
+    DEFAULT_TIMEOUT,
+    FACADES,
+    FLOORS,
+    SERVICE_OPEN_FACADE,
+    SERVICE_CLOSE_FACADE,
+    SERVICE_OPEN_FLOOR,
+    SERVICE_CLOSE_FLOOR,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS: list[Platform] = [Platform.COVER]
+PLATFORMS: list[Platform] = [Platform.COVER, Platform.SENSOR, Platform.BINARY_SENSOR]
+
+# Service schemas
+SERVICE_FACADE_SCHEMA = vol.Schema({
+    vol.Required("facade"): vol.In(FACADES),
+    vol.Optional("position", default=None): vol.Any(None, vol.All(vol.Coerce(int), vol.Range(min=0, max=100))),
+})
+
+SERVICE_FLOOR_SCHEMA = vol.Schema({
+    vol.Required("floor"): vol.In(FLOORS),
+    vol.Optional("position", default=None): vol.Any(None, vol.All(vol.Coerce(int), vol.Range(min=0, max=100))),
+})
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
@@ -56,19 +82,131 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return unload_ok
 
 
+def get_covers_by_attribute(hass: HomeAssistant, attribute: str, value: str) -> list:
+    """Get all InelNET cover entities matching an attribute value."""
+    matching_covers = []
+    for state in hass.states.async_all("cover"):
+        if not state.entity_id.startswith("cover.inelnet_"):
+            continue
+        if state.attributes.get(attribute) == value:
+            matching_covers.append(state.entity_id)
+    return matching_covers
+
+
 async def async_register_services(hass: HomeAssistant) -> None:
     """Register InelNET services."""
 
-    async def handle_send_command(call):
+    async def handle_send_command(call: ServiceCall) -> None:
         """Handle the send_command service call."""
         channel = call.data.get("channel")
         action = call.data.get("action")
 
         for entry_id, data in hass.data[DOMAIN].items():
-            client = data["client"]
-            await client.send_command(channel, action)
+            if isinstance(data, dict) and "client" in data:
+                client = data["client"]
+                await client.send_command(channel, action)
 
-    hass.services.async_register(DOMAIN, "send_command", handle_send_command)
+    async def handle_open_facade(call: ServiceCall) -> None:
+        """Handle open_facade service call."""
+        facade = call.data.get("facade")
+        covers = get_covers_by_attribute(hass, "facade", facade)
+
+        _LOGGER.debug("Opening facade %s: %s covers found", facade, len(covers))
+
+        for entity_id in covers:
+            await hass.services.async_call(
+                "cover",
+                "open_cover",
+                {"entity_id": entity_id},
+                blocking=False,
+            )
+
+    async def handle_close_facade(call: ServiceCall) -> None:
+        """Handle close_facade service call."""
+        facade = call.data.get("facade")
+        position = call.data.get("position")
+        covers = get_covers_by_attribute(hass, "facade", facade)
+
+        _LOGGER.debug("Closing facade %s to position %s: %s covers found", facade, position, len(covers))
+
+        for entity_id in covers:
+            if position is not None:
+                await hass.services.async_call(
+                    "cover",
+                    "set_cover_position",
+                    {"entity_id": entity_id, "position": position},
+                    blocking=False,
+                )
+            else:
+                await hass.services.async_call(
+                    "cover",
+                    "close_cover",
+                    {"entity_id": entity_id},
+                    blocking=False,
+                )
+
+    async def handle_open_floor(call: ServiceCall) -> None:
+        """Handle open_floor service call."""
+        floor = call.data.get("floor")
+        covers = get_covers_by_attribute(hass, "floor", floor)
+
+        _LOGGER.debug("Opening floor %s: %s covers found", floor, len(covers))
+
+        for entity_id in covers:
+            await hass.services.async_call(
+                "cover",
+                "open_cover",
+                {"entity_id": entity_id},
+                blocking=False,
+            )
+
+    async def handle_close_floor(call: ServiceCall) -> None:
+        """Handle close_floor service call."""
+        floor = call.data.get("floor")
+        position = call.data.get("position")
+        covers = get_covers_by_attribute(hass, "floor", floor)
+
+        _LOGGER.debug("Closing floor %s to position %s: %s covers found", floor, position, len(covers))
+
+        for entity_id in covers:
+            if position is not None:
+                await hass.services.async_call(
+                    "cover",
+                    "set_cover_position",
+                    {"entity_id": entity_id, "position": position},
+                    blocking=False,
+                )
+            else:
+                await hass.services.async_call(
+                    "cover",
+                    "close_cover",
+                    {"entity_id": entity_id},
+                    blocking=False,
+                )
+
+    # Register all services
+    if not hass.services.has_service(DOMAIN, "send_command"):
+        hass.services.async_register(DOMAIN, "send_command", handle_send_command)
+
+    if not hass.services.has_service(DOMAIN, SERVICE_OPEN_FACADE):
+        hass.services.async_register(
+            DOMAIN, SERVICE_OPEN_FACADE, handle_open_facade, schema=SERVICE_FACADE_SCHEMA
+        )
+
+    if not hass.services.has_service(DOMAIN, SERVICE_CLOSE_FACADE):
+        hass.services.async_register(
+            DOMAIN, SERVICE_CLOSE_FACADE, handle_close_facade, schema=SERVICE_FACADE_SCHEMA
+        )
+
+    if not hass.services.has_service(DOMAIN, SERVICE_OPEN_FLOOR):
+        hass.services.async_register(
+            DOMAIN, SERVICE_OPEN_FLOOR, handle_open_floor, schema=SERVICE_FLOOR_SCHEMA
+        )
+
+    if not hass.services.has_service(DOMAIN, SERVICE_CLOSE_FLOOR):
+        hass.services.async_register(
+            DOMAIN, SERVICE_CLOSE_FLOOR, handle_close_floor, schema=SERVICE_FLOOR_SCHEMA
+        )
 
 
 class InelNetClient:
