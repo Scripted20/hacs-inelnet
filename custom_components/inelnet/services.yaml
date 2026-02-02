@@ -1,0 +1,32 @@
+send_command:
+  name: Send Command
+  description: Send a raw command to an InelNET channel
+  fields:
+    channel:
+      name: Channel
+      description: Channel number (1-32)
+      required: true
+      example: 1
+      selector:
+        number:
+          min: 1
+          max: 32
+          mode: box
+    action:
+      name: Action
+      description: "Action code: 160=UP, 176=SHORT UP, 144=STOP, 192=DOWN, 208=SHORT DOWN"
+      required: true
+      example: 160
+      selector:
+        select:
+          options:
+            - label: "UP (Open)"
+              value: "160"
+            - label: "SHORT UP"
+              value: "176"
+            - label: "STOP"
+              value: "144"
+            - label: "DOWN (Close)"
+              value: "192"
+            - label: "SHORT DOWN"
+              value: "208"

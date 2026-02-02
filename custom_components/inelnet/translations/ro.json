@@ -1,0 +1,50 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Conectare la InelNET",
+        "description": "Introdu adresa IP a controller-ului InelNET. Implicit este {default_ip}",
+        "data": {
+          "host": "Adresa IP"
+        }
+      },
+      "devices": {
+        "title": "Numar de dispozitive",
+        "description": "Cate jaluzele vrei sa configurezi?",
+        "data": {
+          "num_devices": "Numar dispozitive"
+        }
+      },
+      "device_config": {
+        "title": "Configureaza dispozitivul {device_num} din {total_devices}",
+        "description": "Seteaza parametrii pentru aceasta jaluzeaua",
+        "data": {
+          "channel": "Numar canal",
+          "name": "Nume dispozitiv",
+          "travel_time": "Timp cursa (secunde)",
+          "facade": "Orientare fatada",
+          "floor": "Etaj",
+          "shaded": "Umbrit (sub balcon)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Nu ma pot conecta la controller-ul InelNET. Verifica adresa IP.",
+      "unknown": "Eroare necunoscuta"
+    },
+    "abort": {
+      "already_configured": "Dispozitivul este deja configurat"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Optiuni InelNET",
+        "data": {
+          "retry_count": "Numar de reincercari",
+          "retry_delay": "Pauza intre reincercari (secunde)"
+        }
+      }
+    }
+  }
+}

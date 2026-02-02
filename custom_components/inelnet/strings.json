@@ -1,0 +1,66 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to InelNET",
+        "description": "Enter the IP address of your InelNET controller. Default is {default_ip}",
+        "data": {
+          "host": "IP Address"
+        }
+      },
+      "devices": {
+        "title": "Number of Devices",
+        "description": "How many blinds/covers do you want to configure?",
+        "data": {
+          "num_devices": "Number of devices"
+        }
+      },
+      "device_config": {
+        "title": "Configure Device {device_num} of {total_devices}",
+        "description": "Configure the settings for this blind/cover",
+        "data": {
+          "channel": "Channel number",
+          "name": "Device name",
+          "travel_time": "Travel time (seconds)",
+          "facade": "Facade orientation",
+          "floor": "Floor",
+          "shaded": "Shaded (under balcony)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot connect to InelNET controller. Check the IP address.",
+      "unknown": "Unknown error occurred"
+    },
+    "abort": {
+      "already_configured": "Device is already configured"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "InelNET Options",
+        "data": {
+          "retry_count": "Number of command retries",
+          "retry_delay": "Delay between retries (seconds)"
+        }
+      }
+    }
+  },
+  "services": {
+    "send_command": {
+      "name": "Send Command",
+      "description": "Send a raw command to an InelNET channel",
+      "fields": {
+        "channel": {
+          "name": "Channel",
+          "description": "Channel number (1-32)"
+        },
+        "action": {
+          "name": "Action",
+          "description": "Action code (160=UP, 192=DOWN, 144=STOP)"
+        }
+      }
+    }
+  }
+}
