@@ -1,0 +1,133 @@
+###############################################
+# InelNET Universal Dashboard
+# Works automatically with any InelNET setup
+#
+# Requirements:
+# - auto-entities (HACS Frontend)
+# - mushroom (HACS Frontend) - optional but recommended
+#
+# Installation:
+# 1. Install auto-entities from HACS
+# 2. Copy this YAML to your dashboard
+###############################################
+
+type: vertical-stack
+cards:
+  # Header with quick actions
+  - type: horizontal-stack
+    cards:
+      - type: button
+        name: Deschide Tot
+        icon: mdi:blinds-open
+        tap_action:
+          action: call-service
+          service: cover.open_cover
+          target:
+            integration: inelnet
+        hold_action:
+          action: more-info
+      - type: button
+        name: Stop
+        icon: mdi:stop
+        tap_action:
+          action: call-service
+          service: cover.stop_cover
+          target:
+            integration: inelnet
+      - type: button
+        name: Închide Tot
+        icon: mdi:blinds
+        tap_action:
+          action: call-service
+          service: cover.close_cover
+          target:
+            integration: inelnet
+
+  # Auto-generated list of all InelNET blinds
+  - type: custom:auto-entities
+    card:
+      type: entities
+      title: Toate Jaluzelele
+      show_header_toggle: false
+    filter:
+      include:
+        - integration: inelnet
+          domain: cover
+    sort:
+      method: name
+
+---
+# Alternative: Grid layout with tiles (no HACS needed)
+# Use this if you don't want to install auto-entities
+
+type: vertical-stack
+cards:
+  - type: heading
+    heading: Jaluzele InelNET
+    heading_style: title
+    icon: mdi:blinds
+
+  - type: horizontal-stack
+    cards:
+      - type: button
+        name: Deschide Tot
+        icon: mdi:blinds-open
+        tap_action:
+          action: call-service
+          service: cover.open_cover
+          data: {}
+          target:
+            integration: inelnet
+      - type: button
+        name: Stop Tot
+        icon: mdi:stop
+        tap_action:
+          action: call-service
+          service: cover.stop_cover
+          data: {}
+          target:
+            integration: inelnet
+      - type: button
+        name: Închide Tot
+        icon: mdi:blinds
+        tap_action:
+          action: call-service
+          service: cover.close_cover
+          data: {}
+          target:
+            integration: inelnet
+
+  # This uses the built-in area/floor grouping if configured
+  - type: area
+    area: living_room
+    show_camera: false
+
+---
+# Simple version - works without any HACS cards
+# Just lists all covers from InelNET
+
+type: entities
+title: Jaluzele InelNET
+show_header_toggle: true
+state_color: true
+entities:
+  - type: divider
+    label: Parter
+  - entity: cover.intrare_1
+  - entity: cover.intrare_2
+  - entity: cover.living_3
+  - entity: cover.living_4
+  - entity: cover.usa_terasa
+  - entity: cover.bucatarie_6
+  - type: divider
+    label: Etaj
+  - entity: cover.scara_7
+  - entity: cover.menaj
+  - entity: cover.dormitor_ari
+  - entity: cover.hol_etaj
+  - entity: cover.dormitor_principal
+  - entity: cover.birou_12
+  - entity: cover.birou_13
+  - entity: cover.dormitor_calin_14
+  - entity: cover.dormitor_calin_15
+  - entity: cover.dormitor_calin_16

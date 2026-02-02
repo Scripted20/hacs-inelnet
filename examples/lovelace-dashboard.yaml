@@ -1,0 +1,70 @@
+#################################################
+# InelNET Blinds Dashboard for Home Assistant
+#
+# Copy this YAML to your Lovelace dashboard:
+# 1. Go to Overview → Edit Dashboard → Add Card
+# 2. Choose "Manual" card
+# 3. Paste this YAML
+# 4. Replace entity names with your actual entities
+#
+# To find your entity names:
+# Go to Developer Tools → States → filter by "cover."
+#################################################
+
+type: vertical-stack
+cards:
+  # Quick Actions - Open/Stop/Close All
+  - type: horizontal-stack
+    cards:
+      - type: button
+        name: Open All
+        icon: mdi:blinds-open
+        tap_action:
+          action: call-service
+          service: cover.open_cover
+          target:
+            integration: inelnet
+      - type: button
+        name: Stop
+        icon: mdi:stop
+        tap_action:
+          action: call-service
+          service: cover.stop_cover
+          target:
+            integration: inelnet
+      - type: button
+        name: Close All
+        icon: mdi:blinds
+        tap_action:
+          action: call-service
+          service: cover.close_cover
+          target:
+            integration: inelnet
+
+  # Ground Floor
+  - type: markdown
+    content: "## Ground Floor"
+  - type: tile
+    entity: cover.blind_1
+    features:
+      - type: cover-open-close
+      - type: cover-position
+  - type: tile
+    entity: cover.blind_2
+    features:
+      - type: cover-open-close
+      - type: cover-position
+
+  # Upper Floor
+  - type: markdown
+    content: "## Upper Floor"
+  - type: tile
+    entity: cover.blind_3
+    features:
+      - type: cover-open-close
+      - type: cover-position
+  - type: tile
+    entity: cover.blind_4
+    features:
+      - type: cover-open-close
+      - type: cover-position

@@ -105,6 +105,75 @@ Send a raw command to any channel.
 | channel | Channel number (1-32) |
 | action | Action code: 160=UP, 176=SHORT UP, 144=STOP, 192=DOWN, 208=SHORT DOWN |
 
+## Dashboard Examples
+
+Ready-to-use Lovelace dashboard configurations are available in the [`examples/`](examples/) folder.
+
+### Quick Actions Card
+
+Add this to any dashboard to control all blinds at once:
+
+```yaml
+type: horizontal-stack
+cards:
+  - type: button
+    name: Open All
+    icon: mdi:blinds-open
+    tap_action:
+      action: call-service
+      service: cover.open_cover
+      target:
+        integration: inelnet
+  - type: button
+    name: Stop
+    icon: mdi:stop
+    tap_action:
+      action: call-service
+      service: cover.stop_cover
+      target:
+        integration: inelnet
+  - type: button
+    name: Close All
+    icon: mdi:blinds
+    tap_action:
+      action: call-service
+      service: cover.close_cover
+      target:
+        integration: inelnet
+```
+
+### Tile Card with Position Slider
+
+For individual blind control with position:
+
+```yaml
+type: tile
+entity: cover.living_room
+features:
+  - type: cover-open-close
+  - type: cover-position
+```
+
+### Auto-Generated Dashboard (requires auto-entities from HACS)
+
+Automatically lists all InelNET blinds:
+
+```yaml
+type: custom:auto-entities
+card:
+  type: entities
+  title: All Blinds
+  show_header_toggle: false
+filter:
+  include:
+    - integration: inelnet
+      domain: cover
+sort:
+  method: name
+```
+
+See [`examples/dashboard-universal.yaml`](examples/dashboard-universal.yaml) for more complete examples.
+
 ## InelNET Protocol
 
 This integration communicates with the InelNET controller via HTTP POST requests:
