@@ -15,6 +15,13 @@ Control your InelNET blinds, roller shutters, and awnings directly from Home Ass
 - **Configurable travel time**: Set individual travel times for accurate positioning
 - **Retry mechanism**: Configurable command retries for reliable RF transmission
 
+### New in v2.0.0
+
+- **Virtual Sensors**: Solar exposure per facade, energy savings estimation, daily statistics
+- **Connectivity Monitoring**: Binary sensor shows if controller is online/offline
+- **Facade & Floor Services**: Control all blinds on a facade or floor with a single service call
+- **Automation Blueprints**: Ready-to-use blueprints for common automation scenarios
+
 ## Requirements
 
 - InelNET Internet central control unit
@@ -43,6 +50,40 @@ Control your InelNET blinds, roller shutters, and awnings directly from Home Ass
 3. Restart Home Assistant
 4. Go to Settings → Integrations → Add Integration → Search for "InelNET"
 
+## Automation Blueprints
+
+Click on a button below to import the blueprint directly into your Home Assistant:
+
+### Solar Protection
+Automatically close blinds when the sun is hitting a facade directly.
+
+[![Import Solar Protection](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fraw.githubusercontent.com%2FScripted20%2Fhacs-inelnet%2Fmain%2Fblueprints%2Fautomation%2Finelnet%2Fsolar_protection.yaml)
+
+### Morning Routine
+Open blinds in the morning with different times for weekdays and weekends.
+
+[![Import Morning Routine](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fraw.githubusercontent.com%2FScripted20%2Fhacs-inelnet%2Fmain%2Fblueprints%2Fautomation%2Finelnet%2Fmorning_routine.yaml)
+
+### Evening Privacy
+Close blinds at sunset or at a specific time for privacy.
+
+[![Import Evening Privacy](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fraw.githubusercontent.com%2FScripted20%2Fhacs-inelnet%2Fmain%2Fblueprints%2Fautomation%2Finelnet%2Fevening_privacy.yaml)
+
+### Weather Protection
+Close blinds during extreme heat or high wind conditions.
+
+[![Import Weather Protection](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fraw.githubusercontent.com%2FScripted20%2Fhacs-inelnet%2Fmain%2Fblueprints%2Fautomation%2Finelnet%2Fweather_protection.yaml)
+
+### Weekly Schedule
+Set different open/close times for each day of the week.
+
+[![Import Weekly Schedule](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fraw.githubusercontent.com%2FScripted20%2Fhacs-inelnet%2Fmain%2Fblueprints%2Fautomation%2Finelnet%2Fweekly_schedule.yaml)
+
+### Away Mode
+Simulate presence by randomly moving blinds when you're away.
+
+[![Import Away Mode](https://my.home-assistant.io/badges/blueprint_import.svg)](https://my.home-assistant.io/redirect/blueprint_import/?blueprint_url=https%3A%2F%2Fraw.githubusercontent.com%2FScripted20%2Fhacs-inelnet%2Fmain%2Fblueprints%2Fautomation%2Finelnet%2Faway_mode.yaml)
+
 ## Configuration
 
 The integration is configured through the UI:
@@ -56,6 +97,73 @@ The integration is configured through the UI:
    - **Facade**: Orientation (N, NE, E, SE, S, SV, V, NV)
    - **Floor**: Floor level (parter, etaj, mansarda, demisol)
    - **Shaded**: Whether the blind is shaded (e.g., under a balcony)
+
+### Automation Settings (Options)
+
+After initial setup, go to Settings → Integrations → InelNET → Configure → Automation Settings:
+
+- **Enable virtual sensors**: Toggle solar exposure and statistics sensors
+- **Solar threshold**: When to trigger solar protection (%)
+- **Weather entity**: Select your weather integration for temperature/wind data
+- **Max temperature**: Close blinds above this temperature
+- **Max wind speed**: Close blinds above this wind speed
+
+## Virtual Sensors
+
+When enabled, the integration creates these sensors:
+
+| Sensor | Description |
+|--------|-------------|
+| `sensor.inelnet_solar_exposure_*` | Solar intensity per facade (N, NE, E, SE, S, SV, V, NV) 0-100% |
+| `sensor.inelnet_energy_savings_today` | Estimated energy savings in kWh |
+| `sensor.inelnet_commands_today` | Number of commands sent today |
+| `sensor.inelnet_runtime_today` | Total blind movement time today (minutes) |
+| `binary_sensor.inelnet_connected` | Controller online/offline status |
+
+## Services
+
+### `inelnet.send_command`
+
+Send a raw command to any channel.
+
+| Field | Description |
+|-------|-------------|
+| channel | Channel number (1-32) |
+| action | Action code: 160=UP, 176=SHORT UP, 144=STOP, 192=DOWN, 208=SHORT DOWN |
+
+### `inelnet.open_facade`
+
+Open all blinds on a specific facade.
+
+| Field | Description |
+|-------|-------------|
+| facade | Facade orientation: N, NE, E, SE, S, SV, V, NV |
+
+### `inelnet.close_facade`
+
+Close all blinds on a specific facade.
+
+| Field | Description |
+|-------|-------------|
+| facade | Facade orientation: N, NE, E, SE, S, SV, V, NV |
+| position | (Optional) Target position 0-100, default: 0 (fully closed) |
+
+### `inelnet.open_floor`
+
+Open all blinds on a specific floor.
+
+| Field | Description |
+|-------|-------------|
+| floor | Floor name: parter, etaj, mansarda, demisol |
+
+### `inelnet.close_floor`
+
+Close all blinds on a specific floor.
+
+| Field | Description |
+|-------|-------------|
+| floor | Floor name: parter, etaj, mansarda, demisol |
+| position | (Optional) Target position 0-100, default: 0 (fully closed) |
 
 ## Usage
 
@@ -79,31 +187,22 @@ automation:
         target:
           entity_id: cover.living_room
 
-  - alias: "Open south-facing blinds in winter morning"
+  - alias: "Close south facade when hot"
     trigger:
-      - platform: time
-        at: "09:00:00"
+      - platform: numeric_state
+        entity_id: sensor.inelnet_solar_exposure_s
+        above: 70
     condition:
-      - condition: template
-        value_template: "{{ now().month in [11, 12, 1, 2] }}"
+      - condition: numeric_state
+        entity_id: weather.home
+        attribute: temperature
+        above: 25
     action:
-      - service: cover.open_cover
-        target:
-          entity_id:
-            - cover.living_3
-            - cover.living_4
+      - service: inelnet.close_facade
+        data:
+          facade: "S"
+          position: 20
 ```
-
-### Services
-
-#### `inelnet.send_command`
-
-Send a raw command to any channel.
-
-| Field | Description |
-|-------|-------------|
-| channel | Channel number (1-32) |
-| action | Action code: 160=UP, 176=SHORT UP, 144=STOP, 192=DOWN, 208=SHORT DOWN |
 
 ## Dashboard Examples
 
@@ -142,37 +241,47 @@ cards:
         integration: inelnet
 ```
 
-### Tile Card with Position Slider
-
-For individual blind control with position:
+### Facade Control Buttons
 
 ```yaml
-type: tile
-entity: cover.living_room
-features:
-  - type: cover-open-close
-  - type: cover-position
+type: horizontal-stack
+cards:
+  - type: button
+    name: Close South
+    icon: mdi:sun-compass
+    tap_action:
+      action: call-service
+      service: inelnet.close_facade
+      data:
+        facade: "S"
+        position: 20
+  - type: button
+    name: Open South
+    icon: mdi:blinds-open
+    tap_action:
+      action: call-service
+      service: inelnet.open_facade
+      data:
+        facade: "S"
 ```
 
-### Auto-Generated Dashboard (requires auto-entities from HACS)
-
-Automatically lists all InelNET blinds:
+### Solar Exposure Sensor Card
 
 ```yaml
-type: custom:auto-entities
-card:
-  type: entities
-  title: All Blinds
-  show_header_toggle: false
-filter:
-  include:
-    - integration: inelnet
-      domain: cover
-sort:
-  method: name
+type: entities
+title: Solar Exposure
+entities:
+  - entity: sensor.inelnet_solar_exposure_n
+    name: North
+  - entity: sensor.inelnet_solar_exposure_e
+    name: East
+  - entity: sensor.inelnet_solar_exposure_s
+    name: South
+  - entity: sensor.inelnet_solar_exposure_v
+    name: West
 ```
 
-See [`examples/dashboard-universal.yaml`](examples/dashboard-universal.yaml) for more complete examples.
+See [`examples/`](examples/) folder for more complete examples including scenes, groups, and automations.
 
 ## InelNET Protocol
 
@@ -198,6 +307,7 @@ send_ch={channel}&send_act={action}
 - **No position feedback**: InelNET communication is unidirectional. Position is estimated based on travel time.
 - **No status polling**: We cannot query the actual state of blinds.
 - **RF reliability**: Commands are sent via RF. The integration sends multiple retries to improve reliability.
+- **Blueprints not auto-installed**: HACS doesn't support blueprint distribution. Use the import buttons above.
 
 ## Troubleshooting
 
@@ -210,6 +320,14 @@ send_ch={channel}&send_act={action}
 - Increase retry count in integration options
 - Check RF range between InelNET and blinds
 - Verify the channel number matches the blind
+
+### Sensors not appearing
+- Go to integration options and ensure "Enable virtual sensors" is checked
+- Restart Home Assistant after changing this option
+
+### Blueprints not showing
+- Blueprints must be imported manually using the buttons in this README
+- HACS does not support automatic blueprint installation
 
 ## Contributing
 
